@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+@theme {
+  /* Superficies — chasis oscuro con tinte azulado, como el sustrato de un PCB */
+  --color-bg-base: #0a0c10;
+  --color-bg-panel: #12151b;
+  --color-bg-panel-2: #191d25;
+  --color-bg-recessed: #08090c;
+
+  /* Texto */
+  --color-text-primary: #e9e7e2;
+  --color-text-secondary: #a7adb8;
+  --color-text-muted: #6b7280;
+
+  /* Acentos derivados del propio objeto del negocio: cobre (pines/soldadura) y
+     acero (carcasas de módulos). El verde "señal" se usa con moderación, solo
+     como indicador de estado positivo (no como color de marca). */
+  --color-copper: #c9763a;
+  --color-copper-bright: #e08f4f;
+  --color-copper-dim: #7a4a26;
+  --color-steel: #5b8aa6;
+  --color-steel-bright: #7fb0cf;
+  --color-signal-green: #4fa876;
+  --color-signal-red: #b4523f;
+  --color-signal-amber: #d1a23a;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo,
+    Consolas, monospace;
+}
+
+body {
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-feature-settings: "tnum" 1;
+}
+
+/* Textura muy sutil tipo grilla de placa — solo perceptible de cerca */
+.bg-pcb-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Panel "instrumento" — el elemento distintivo de la app: una lectura tipo
+   multímetro del Factor (gasto ARS / mercadería USD), el número que define
+   todo el negocio. Superficie recesada con dígitos cobre con leve resplandor. */
+.instrument-panel {
+  background: linear-gradient(180deg, var(--color-bg-recessed) 0%, #0c0e12 100%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.3);
+}
+
+.instrument-digits {
+  font-family: var(--font-mono);
+  color: var(--color-copper-bright);
+  text-shadow: 0 0 12px rgba(224, 143, 79, 0.45), 0 0 1px rgba(224, 143, 79, 0.8);
+  letter-spacing: 0.02em;
+}
+
+.instrument-label {
+  font-family: var(--font-mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* Scrollbar discreto para tablas densas con overflow horizontal */
+.scroll-thin::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+.scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+}
