@@ -5,8 +5,9 @@ import { obtenerVentaPorId } from "@/lib/data";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { DevolucionForm } from "./DevolucionForm";
 
-export default async function DevolucionPage({ params }: { params: { id: string } }) {
-  const venta = await obtenerVentaPorId(params.id);
+export default async function DevolucionPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const venta = await obtenerVentaPorId(id);
   
   if (!venta) {
     notFound();

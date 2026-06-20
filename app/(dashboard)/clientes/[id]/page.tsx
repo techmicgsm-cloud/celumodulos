@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { obtenerClientePorId, obtenerMovimientosCC } from "@/lib/data";
 
-export default async function ClienteProfilePage({ params }: { params: { id: string } }) {
-  const cliente = await obtenerClientePorId(params.id);
+export default async function ClienteProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const cliente = await obtenerClientePorId(id);
   
   if (!cliente) {
     notFound();

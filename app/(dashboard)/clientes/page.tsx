@@ -34,7 +34,7 @@ export default async function ClientesPage() {
             <Users className="h-12 w-12 mx-auto mb-4 opacity-20" />
             <p>Todavía no registraste ningún cliente local o técnico.</p>
             <Link href="/clientes/nuevo">
-              <Button variant="outline" className="mt-4">
+              <Button variant="secondary" className="mt-4">
                 Registrar primer cliente
               </Button>
             </Link>

@@ -36,8 +36,8 @@ export default async function VentasPage() {
               <ShoppingCart className="h-12 w-12 mx-auto mb-4 opacity-20" />
               <p>Todavía no registraste ninguna venta.</p>
               <Link href="/ventas/nueva">
-                <Button variant="outline" className="mt-4">
-                  Registrar mi primera venta
+                <Button variant="secondary" className="mt-4">
+                  Cargar primera venta
                 </Button>
               </Link>
             </div>

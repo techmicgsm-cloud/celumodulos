@@ -88,7 +88,7 @@ export function NuevoClienteForm() {
       <div className="flex items-center gap-4">
         <Button 
           type="button" 
-          variant="outline" 
+          variant="secondary" 
           onClick={() => router.push("/clientes")}
           disabled={enviando}
         >

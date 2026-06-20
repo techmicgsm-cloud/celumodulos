@@ -28,8 +28,12 @@ export interface ImportacionItem {
   created_at: string;
 }
 
+export interface ModeloItem extends ImportacionItem {
+  cantidad: number;
+}
+
 export interface ImportacionConModelos extends Importacion {
-  modelos: ImportacionItem[];
+  modelos: ModeloItem[];
 }
 
 /** Fila editable en el formulario de nueva importación, antes de persistir. */

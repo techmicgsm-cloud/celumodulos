@@ -231,7 +231,7 @@ export function NuevaVentaForm({
 
           <Button
             type="button"
-            variant="outline"
+            variant="secondary"
             onClick={addItem}
             className="w-full mt-4 border-dashed border-slate-700 text-slate-400 hover:text-white"
           >
@@ -295,7 +295,7 @@ export function NuevaVentaForm({
       <div className="flex items-center gap-4 pt-4 border-t border-slate-800">
         <Button 
           type="button" 
-          variant="outline" 
+          variant="secondary" 
           onClick={() => router.push("/ventas")}
           disabled={enviando}
         >
