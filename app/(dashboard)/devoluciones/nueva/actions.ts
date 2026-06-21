@@ -6,9 +6,7 @@ import { revalidatePath } from "next/cache";
 export async function buscarVentasPorFiltro(filtro: string) {
   const supabase = await createClient();
   
-  // Buscar ventas por ID corto (comienzo del UUID) o por nombre de cliente
-  const isPosibleUUID = filtro.length >= 4;
-  
+
   let query = supabase
     .from("ventas")
     .select(`
