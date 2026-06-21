@@ -45,7 +45,7 @@ export default async function ClienteProfilePage({ params }: { params: Promise<{
               </div>
               <div>
                 <p className="text-xs text-slate-500 font-medium">Nº Cliente</p>
-                <p className="text-sm text-white font-mono">{cliente.numero_cliente}</p>
+                <p className="text-sm text-white font-mono">{String(cliente.numero_cliente).padStart(4, '0')}</p>
               </div>
             </div>
             

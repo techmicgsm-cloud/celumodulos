@@ -47,7 +47,7 @@ export default async function ClientesPage() {
                 className="bg-slate-900/50 p-5 rounded-lg border border-slate-800 hover:border-copper/50 transition-colors relative overflow-hidden h-full flex flex-col"
               >
                 <div className="absolute top-0 right-0 bg-copper/10 text-copper px-3 py-1 rounded-bl-lg text-xs font-bold">
-                  #{cliente.numero_cliente}
+                  #{String(cliente.numero_cliente).padStart(4, '0')}
                 </div>
                 <h3 className="font-semibold text-lg text-white mb-3 pr-12 flex items-start justify-between">
                   {cliente.nombre_local}

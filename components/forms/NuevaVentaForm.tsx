@@ -120,7 +120,7 @@ export function NuevaVentaForm({
                 <option value="">Consumidor Final (Sin registrar)</option>
                 {clientes.map((cli) => (
                   <option key={cli.id} value={cli.id}>
-                    [#{cli.numero_cliente}] {cli.nombre_local}
+                    [#{String(cli.numero_cliente).padStart(4, '0')}] {cli.nombre_local}
                   </option>
                 ))}
               </select>
