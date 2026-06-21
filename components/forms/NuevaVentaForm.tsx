@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, AlertTriangle, Info, CheckCircle, FileText, ArrowRight } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/Card";
