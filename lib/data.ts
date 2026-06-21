@@ -73,9 +73,12 @@ export async function obtenerImportacionPorId(
 
 export async function obtenerStockAgrupado(): Promise<StockAgrupado[]> {
   const supabase = await createClient();
+  const config = await obtenerConfiguracionAdmin();
+  const margen = config?.margen_publico_defecto || 40;
+
   const { data, error } = await supabase
     .from("importacion_items")
-    .select("modelo, sku, marca, categoria, cantidad_disponible")
+    .select("modelo, sku, marca, categoria, cantidad_disponible, precio_usd_unitario")
     .gt("cantidad_disponible", 0);
 
   if (error) {
@@ -83,7 +86,7 @@ export async function obtenerStockAgrupado(): Promise<StockAgrupado[]> {
     return [];
   }
 
-  const agrupado: Record<string, StockAgrupado> = {};
+  const agrupado: Record<string, StockAgrupado & { total_usd: number }> = {};
   for (const item of data) {
     const key = `${item.modelo}-${item.sku || ""}`;
     if (!agrupado[key]) {
@@ -93,12 +96,24 @@ export async function obtenerStockAgrupado(): Promise<StockAgrupado[]> {
         marca: item.marca,
         categoria: item.categoria,
         cantidad_disponible: 0,
+        total_usd: 0,
       };
     }
     agrupado[key].cantidad_disponible += item.cantidad_disponible;
+    agrupado[key].total_usd += item.precio_usd_unitario * item.cantidad_disponible;
   }
 
-  return Object.values(agrupado).sort((a, b) => a.modelo.localeCompare(b.modelo));
+  return Object.values(agrupado).map(item => {
+    const costoUsdPromedio = item.cantidad_disponible > 0 ? item.total_usd / item.cantidad_disponible : 0;
+    const precioSugerido = costoUsdPromedio * (1 + (margen / 100));
+    
+    // Cleanup total_usd property
+    const { total_usd, ...rest } = item;
+    return {
+      ...rest,
+      precio_sugerido: parseFloat(precioSugerido.toFixed(2))
+    };
+  }).sort((a, b) => a.modelo.localeCompare(b.modelo));
 }
 
 export async function obtenerVentas() {

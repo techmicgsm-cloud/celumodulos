@@ -11,7 +11,7 @@ export interface VentaItemInput {
   precio_venta_unitario: number;
 }
 
-export async function crearVenta(clienteId: string | null, notas: string, items: VentaItemInput[], saldoADescontar: number = 0) {
+export async function crearVenta(clienteId: string | null, notas: string, items: VentaItemInput[], saldoADescontar: number = 0, metodoPago: string = 'efectivo') {
   const supabase = await createClient();
   
   const { data: { user } } = await supabase.auth.getUser();
@@ -36,7 +36,8 @@ export async function crearVenta(clienteId: string | null, notas: string, items:
       p_cliente_nombre: null, // Deprecado
       p_notas: notas || null,
       p_items: validItems,
-      p_saldo_a_descontar: saldoADescontar
+      p_saldo_a_descontar: saldoADescontar,
+      p_metodo_pago: metodoPago
     });
 
     if (error) {

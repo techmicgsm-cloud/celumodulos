@@ -1,10 +1,12 @@
 import { ShoppingCart } from "lucide-react";
-import { obtenerStockAgrupado, obtenerClientes } from "@/lib/data";
+import { obtenerStockAgrupado, obtenerClientes, obtenerImportaciones } from "@/lib/data";
 import { NuevaVentaForm } from "@/components/forms/NuevaVentaForm";
 
 export default async function NuevaVentaPage() {
   const stockDisponible = await obtenerStockAgrupado();
   const clientes = await obtenerClientes();
+  const importaciones = await obtenerImportaciones();
+  const ultimoFactorDolar = importaciones.length > 0 ? importaciones[0].factor : 1000;
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -18,7 +20,7 @@ export default async function NuevaVentaPage() {
         </p>
       </div>
 
-      <NuevaVentaForm stockDisponible={stockDisponible} clientes={clientes} />
+      <NuevaVentaForm stockDisponible={stockDisponible} clientes={clientes} ultimoFactorDolar={ultimoFactorDolar} />
     </div>
   );
 }

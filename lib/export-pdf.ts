@@ -106,3 +106,71 @@ export function exportarImportacionPdf(
     .replace(/[^a-z0-9]+/g, "-");
   doc.save(`${nombreArchivo}-${Date.now()}.pdf`);
 }
+
+/** Exporta un ticket de venta para el cliente */
+export function exportarTicketVentaPdf(
+  venta: any,
+  items: any[],
+  cliente: any | null,
+  valorDolarArs: number
+) {
+  const doc = new jsPDF();
+  encabezado(doc, "Comprobante de Venta", `Fecha: ${formatFecha(venta.created_at)}`);
+
+  autoTable(doc, {
+    startY: 32,
+    theme: "plain",
+    body: [
+      ["Cliente / Técnico", cliente ? `[#${String(cliente.numero_cliente).padStart(4, '0')}] ${cliente.nombre_local}` : "Consumidor Final"],
+      ["Método de Pago", venta.metodo_pago === 'cuenta_corriente' ? 'Cuenta Corriente (Fiado)' : (venta.metodo_pago === 'transferencia' ? 'Transferencia' : 'Efectivo')],
+      ["Cotización Dólar", formatARS(valorDolarArs)],
+    ],
+    styles: { fontSize: 10 },
+    columnStyles: { 0: { fontStyle: "bold", textColor: TEXTO_MUTED } },
+  });
+
+  const startY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
+
+  autoTable(doc, {
+    startY: startY + 8,
+    head: [["Cant.", "Modelo", "Precio Unitario (USD)", "Subtotal (USD)", "Subtotal (ARS)"]],
+    body: items.map((item) => {
+      const subtotalUsd = item.cantidad * item.precio_unitario_venta;
+      return [
+        String(item.cantidad),
+        item.modelo,
+        formatUSD(item.precio_unitario_venta),
+        formatUSD(subtotalUsd),
+        formatARS(subtotalUsd * valorDolarArs),
+      ];
+    }),
+    headStyles: { fillColor: [20, 23, 28], textColor: [233, 231, 226] },
+    styles: { fontSize: 9 },
+    alternateRowStyles: { fillColor: [245, 245, 245] },
+  });
+
+  const tableY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
+
+  autoTable(doc, {
+    startY: tableY + 8,
+    theme: "plain",
+    body: [
+      ["Total Venta", formatUSD(venta.total_venta), formatARS(venta.total_venta * valorDolarArs)],
+    ],
+    styles: { fontSize: 12, fontStyle: "bold" },
+    columnStyles: {
+      0: { textColor: TEXTO_MUTED, halign: "right" },
+      1: { textColor: TITULO_COLOR, halign: "right" },
+      2: { textColor: [34, 197, 94], halign: "right" },
+    },
+  });
+
+  if (venta.notas) {
+    const finalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
+    doc.setFontSize(9);
+    doc.setTextColor(...TEXTO_MUTED);
+    doc.text(`Notas: ${venta.notas}`, 14, finalY + 10);
+  }
+
+  doc.save(`venta-${venta.id.split('-')[0]}-${Date.now()}.pdf`);
+}

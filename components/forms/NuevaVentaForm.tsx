@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, AlertTriangle, Info } from "lucide-react";
+import { Plus, Trash2, AlertTriangle, Info, CheckCircle, FileText, ArrowRight } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Field, Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { formatUSD } from "@/lib/calculations";
+import { formatUSD, formatARS } from "@/lib/calculations";
 import { crearVenta, VentaItemInput } from "@/app/(dashboard)/ventas/nueva/actions";
 import { StockAgrupado, Cliente } from "@/lib/types";
+import { exportarTicketVentaPdf } from "@/lib/export-pdf";
 
 interface VentaItemUI extends VentaItemInput {
   uiId: string;
@@ -16,18 +17,25 @@ interface VentaItemUI extends VentaItemInput {
 
 export function NuevaVentaForm({ 
   stockDisponible, 
-  clientes 
+  clientes,
+  ultimoFactorDolar
 }: { 
   stockDisponible: StockAgrupado[],
-  clientes: Cliente[]
+  clientes: Cliente[],
+  ultimoFactorDolar: number
 }) {
   const router = useRouter();
   const [clienteId, setClienteId] = useState("");
   const [notas, setNotas] = useState("");
+  const [metodoPago, setMetodoPago] = useState("efectivo");
+  const [valorDolar, setValorDolar] = useState(ultimoFactorDolar);
+  
   const [usarSaldo, setUsarSaldo] = useState(false);
   const [saldoADescontar, setSaldoADescontar] = useState(0);
+  
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+  const [ventaExitosa, setVentaExitosa] = useState<{ id: string, total: number, items: any[] } | null>(null);
 
   const clienteSeleccionado = clientes.find(c => c.id === clienteId);
   const saldoDisponible = clienteSeleccionado?.saldo_actual || 0;
@@ -54,11 +62,12 @@ export function NuevaVentaForm({
       if (item.uiId === id) {
         const newItem = { ...item, [field]: value };
         
-        // Auto-completar SKU cuando se selecciona el modelo del selector
+        // Auto-completar SKU y Precio Sugerido cuando se selecciona el modelo
         if (field === "modelo") {
           const selectedStock = stockDisponible.find(s => s.modelo === value);
           if (selectedStock) {
             newItem.sku = selectedStock.sku || "";
+            newItem.precio_venta_unitario = selectedStock.precio_sugerido || 0;
           }
         }
         return newItem;
@@ -87,14 +96,55 @@ export function NuevaVentaForm({
     }
 
     setEnviando(true);
-    const result = await crearVenta(clienteId || null, notas, items, usarSaldo ? saldoADescontar : 0);
+    const result = await crearVenta(clienteId || null, notas, items, usarSaldo ? saldoADescontar : 0, metodoPago);
     
     if (result.error) {
       setError(result.error);
       setEnviando(false);
     } else {
-      router.push("/ventas");
+      setVentaExitosa({
+        id: result.ventaId,
+        total: totalVenta,
+        items: items
+      });
+      setEnviando(false);
     }
+  }
+
+  if (ventaExitosa) {
+    return (
+      <Card className="max-w-2xl mx-auto border-emerald-500/30 bg-emerald-500/5 animate-fade-in text-center p-12">
+        <CheckCircle className="w-20 h-20 text-emerald-500 mx-auto mb-6" />
+        <h2 className="text-3xl font-bold text-white mb-2">¡Venta Registrada!</h2>
+        <p className="text-slate-400 mb-8">
+          La venta se ha procesado exitosamente y el stock ha sido descontado.
+        </p>
+        
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Button 
+            onClick={() => {
+              exportarTicketVentaPdf(
+                { id: ventaExitosa.id, created_at: new Date().toISOString(), metodo_pago: metodoPago, total_venta: ventaExitosa.total, notas },
+                ventaExitosa.items,
+                clienteSeleccionado,
+                valorDolar
+              );
+            }}
+            className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-white"
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            Imprimir Comprobante PDF
+          </Button>
+          <Button 
+            onClick={() => router.push("/ventas")}
+            className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white"
+          >
+            Ir al listado de Ventas
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      </Card>
+    );
   }
 
   return (
@@ -125,6 +175,33 @@ export function NuevaVentaForm({
                 ))}
               </select>
             </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-slate-400">Método de Pago</label>
+              <select 
+                className="w-full h-10 bg-slate-950 border border-slate-800 rounded-md px-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-copper focus:border-copper"
+                value={metodoPago}
+                onChange={(e) => setMetodoPago(e.target.value)}
+              >
+                <option value="efectivo">Efectivo</option>
+                <option value="transferencia">Transferencia</option>
+                <option value="cuenta_corriente">Fiado (Cuenta Corriente)</option>
+              </select>
+            </div>
+            
+            <Field label="Cotización Dólar (ARS)">
+              <div className="flex items-center gap-2">
+                <span className="text-slate-400">$</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  required
+                  value={valorDolar}
+                  onChange={(e) => setValorDolar(parseFloat(e.target.value) || 0)}
+                />
+              </div>
+            </Field>
+
             <Field label="Notas / Referencia (Opcional)">
               <Input
                 placeholder="Ej: Entregado por mensajería"
@@ -133,6 +210,12 @@ export function NuevaVentaForm({
               />
             </Field>
           </div>
+          {metodoPago === 'cuenta_corriente' && !clienteSeleccionado && (
+            <div className="text-amber-400 text-sm flex items-center mt-2 p-3 bg-amber-400/10 rounded border border-amber-400/20">
+              <AlertTriangle className="w-4 h-4 mr-2 flex-shrink-0" />
+              Selecciona un cliente de la agenda para poder fiarle (Cuenta Corriente).
+            </div>
+          )}
         </div>
       </Card>
 
@@ -151,6 +234,9 @@ export function NuevaVentaForm({
                 <span className="text-sm text-slate-400 block">Total de la venta</span>
                 <span className={`text-2xl font-bold ${usarSaldo && saldoADescontar > 0 ? 'text-slate-300 line-through text-xl' : 'text-emerald-400'}`}>
                   {formatUSD(totalVenta)}
+                </span>
+                <span className="text-sm font-medium text-emerald-500/80 block mt-1">
+                  ≈ {formatARS(totalVenta * valorDolar)}
                 </span>
               </div>
             </div>
@@ -212,8 +298,13 @@ export function NuevaVentaForm({
 
                 <div className="w-full md:w-1/5 space-y-1">
                   <label className="text-xs font-medium text-slate-400">Subtotal</label>
-                  <div className="h-10 flex items-center px-3 bg-slate-900 rounded-md border border-slate-800 text-white font-medium">
-                    {formatUSD(item.cantidad * (Number(item.precio_venta_unitario) || 0))}
+                  <div className="flex flex-col">
+                    <div className="h-10 flex items-center px-3 bg-slate-900 rounded-md border border-slate-800 text-white font-medium">
+                      {formatUSD(item.cantidad * (Number(item.precio_venta_unitario) || 0))}
+                    </div>
+                    <span className="text-xs text-emerald-500/80 font-medium mt-1.5 ml-1">
+                      ≈ {formatARS(item.cantidad * (Number(item.precio_venta_unitario) || 0) * valorDolar)}
+                    </span>
                   </div>
                 </div>
 
@@ -304,7 +395,7 @@ export function NuevaVentaForm({
         <Button 
           type="submit" 
           className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold"
-          disabled={enviando}
+          disabled={enviando || (metodoPago === 'cuenta_corriente' && !clienteSeleccionado)}
         >
           {enviando ? "Procesando venta..." : "Confirmar Venta y Descontar Stock"}
         </Button>

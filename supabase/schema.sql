@@ -101,6 +101,7 @@ create table if not exists public.ventas (
   created_at timestamptz not null default now(),
   cliente_id uuid references public.clientes(id) on delete set null,
   cliente_nombre text, -- Deprecado o para Consumidor Final
+  metodo_pago text not null default 'efectivo' check (metodo_pago in ('efectivo', 'transferencia', 'cuenta_corriente')),
   notas text,
   total_venta numeric(14, 2) not null check (total_venta >= 0),
   total_costo numeric(14, 2) not null check (total_costo >= 0),
@@ -176,7 +177,8 @@ create or replace function public.registrar_venta_fifo(
   p_cliente_nombre text,
   p_notas text,
   p_items jsonb, -- Formato: [{ "modelo": "...", "sku": "...", "cantidad": X, "precio_venta_unitario": Y }]
-  p_saldo_a_descontar numeric default 0
+  p_saldo_a_descontar numeric default 0,
+  p_metodo_pago text default 'efectivo'
 )
 returns json as $$
 declare
@@ -200,8 +202,8 @@ declare
   v_total_costo_global numeric(14,2) := 0;
 begin
   -- Crear el registro maestro de Venta primero (con totales 0)
-  insert into public.ventas (user_id, cliente_id, cliente_nombre, notas, total_venta, total_costo, ganancia_neta)
-  values (p_user_id, p_cliente_id, p_cliente_nombre, p_notas, 0, 0, 0)
+  insert into public.ventas (user_id, cliente_id, cliente_nombre, notas, total_venta, total_costo, ganancia_neta, metodo_pago)
+  values (p_user_id, p_cliente_id, p_cliente_nombre, p_notas, 0, 0, 0, p_metodo_pago)
   returning id into v_venta_id;
 
   -- Iterar sobre el carrito
@@ -297,6 +299,21 @@ begin
       
       insert into public.movimientos_cc (user_id, cliente_id, monto, concepto, referencia_id)
       values (p_user_id, p_cliente_id, -p_saldo_a_descontar, 'Pago parcial con saldo a favor Venta #' || substr(v_venta_id::text, 1, 8), v_venta_id);
+    end;
+  end if;
+
+  -- NUEVO: Si el método de pago es cuenta_corriente, el resto se descuenta del saldo (generando deuda si no hay saldo suficiente)
+  if p_metodo_pago = 'cuenta_corriente' and p_cliente_id is not null then
+    declare
+      v_deuda_restante numeric;
+    begin
+      v_deuda_restante := v_total_venta_global - coalesce(p_saldo_a_descontar, 0);
+      if v_deuda_restante > 0 then
+        update public.clientes set saldo_actual = saldo_actual - v_deuda_restante where id = p_cliente_id;
+        
+        insert into public.movimientos_cc (user_id, cliente_id, monto, concepto, referencia_id)
+        values (p_user_id, p_cliente_id, -v_deuda_restante, 'Venta a Cuenta Corriente #' || substr(v_venta_id::text, 1, 8), v_venta_id);
+      end if;
     end;
   end if;
 
