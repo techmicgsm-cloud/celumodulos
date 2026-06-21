@@ -126,22 +126,28 @@ export function exportarTicketVentaPdf(
   doc.text("Comprobante de Venta", 40, 18, { align: "center" });
   doc.setFontSize(8);
   doc.text(`Fecha: ${formatFecha(venta.created_at)}`, 40, 23, { align: "center" });
+  doc.text(`Ticket #${venta.id.split('-')[0].toUpperCase()}`, 40, 27, { align: "center" });
   
-  doc.line(5, 26, 75, 26);
+  // Línea punteada
+  doc.setLineDashPattern([1, 1], 0);
+  doc.line(5, 30, 75, 30);
+  doc.setLineDashPattern([], 0);
 
   // Datos del cliente
   doc.setFontSize(8);
   const clienteStr = cliente ? `[#${String(cliente.numero_cliente).padStart(4, '0')}] ${cliente.nombre_local}` : "Consumidor Final";
-  doc.text(`Cliente: ${clienteStr}`, 5, 32);
+  doc.text(`Cliente: ${clienteStr}`, 5, 35);
   
   const metodoPago = venta.metodo_pago === 'cuenta_corriente' ? 'Fiado (C.C.)' : (venta.metodo_pago === 'transferencia' ? 'Transferencia' : 'Efectivo');
-  doc.text(`Pago: ${metodoPago}`, 5, 37);
+  doc.text(`Pago: ${metodoPago}`, 5, 40);
 
-  doc.line(5, 40, 75, 40);
+  doc.setLineDashPattern([1, 1], 0);
+  doc.line(5, 43, 75, 43);
+  doc.setLineDashPattern([], 0);
 
   // Tabla de items usando autoTable ajustado para ticket
   autoTable(doc, {
-    startY: 42,
+    startY: 45,
     margin: { left: 5, right: 5 },
     theme: "plain",
     head: [["Cant", "Articulo", "Total"]],
@@ -164,7 +170,9 @@ export function exportarTicketVentaPdf(
 
   const tableY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
   
+  doc.setLineDashPattern([1, 1], 0);
   doc.line(5, tableY + 2, 75, tableY + 2);
+  doc.setLineDashPattern([], 0);
 
   // Total
   doc.setFontSize(10);
@@ -172,7 +180,7 @@ export function exportarTicketVentaPdf(
   doc.text("TOTAL", 5, tableY + 8);
   doc.text(formatARS(venta.total_venta), 75, tableY + 8, { align: "right" });
 
-  let finalY = tableY + 16;
+  let finalY = tableY + 14;
   if (venta.notas) {
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
@@ -182,9 +190,19 @@ export function exportarTicketVentaPdf(
   }
   
   // Pie de ticket
+  doc.setLineDashPattern([1, 1], 0);
+  doc.line(5, finalY, 75, finalY);
+  doc.setLineDashPattern([], 0);
+
   doc.setFontSize(8);
-  doc.setFont("helvetica", "italic");
-  doc.text("¡Gracias por su compra!", 40, finalY + 4, { align: "center" });
+  doc.setFont("helvetica", "bold");
+  doc.text("¡Gracias por su compra!", 40, finalY + 5, { align: "center" });
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7);
+  doc.text("Los equipos deben ser probados antes de", 40, finalY + 9, { align: "center" });
+  doc.text("su instalación. No se aceptan reclamos", 40, finalY + 12, { align: "center" });
+  doc.text("sin los films ni los sellos correspondientes.", 40, finalY + 15, { align: "center" });
 
   doc.save(`venta-${venta.id.split('-')[0]}-${Date.now()}.pdf`);
 }
