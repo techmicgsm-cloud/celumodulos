@@ -183,7 +183,8 @@ export function NuevaVentaForm({
                 <option value="efectivo">Efectivo</option>
                 <option value="transferencia">Transferencia</option>
                 <option value="cuenta_corriente">Fiado (Cuenta Corriente)</option>
-
+              </select>
+            </div>
 
             <Field label="Notas / Referencia (Opcional)">
               <Input
