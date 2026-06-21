@@ -81,6 +81,7 @@ create table if not exists public.clientes (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles(id) on delete cascade,
   created_at timestamptz not null default now(),
+  numero_cliente serial,
   nombre_local text not null,
   telefono text,
   email text,
