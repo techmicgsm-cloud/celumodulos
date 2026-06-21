@@ -111,8 +111,7 @@ export function exportarImportacionPdf(
 export function exportarTicketVentaPdf(
   venta: any,
   items: any[],
-  cliente: any | null,
-  valorDolarArs: number
+  cliente: any | null
 ) {
   const doc = new jsPDF();
   encabezado(doc, "Comprobante de Venta", `Fecha: ${formatFecha(venta.created_at)}`);
@@ -123,7 +122,6 @@ export function exportarTicketVentaPdf(
     body: [
       ["Cliente / Técnico", cliente ? `[#${String(cliente.numero_cliente).padStart(4, '0')}] ${cliente.nombre_local}` : "Consumidor Final"],
       ["Método de Pago", venta.metodo_pago === 'cuenta_corriente' ? 'Cuenta Corriente (Fiado)' : (venta.metodo_pago === 'transferencia' ? 'Transferencia' : 'Efectivo')],
-      ["Cotización Dólar", formatARS(valorDolarArs)],
     ],
     styles: { fontSize: 10 },
     columnStyles: { 0: { fontStyle: "bold", textColor: TEXTO_MUTED } },
@@ -133,15 +131,14 @@ export function exportarTicketVentaPdf(
 
   autoTable(doc, {
     startY: startY + 8,
-    head: [["Cant.", "Modelo", "Precio Unitario (USD)", "Subtotal (USD)", "Subtotal (ARS)"]],
+    head: [["Cant.", "Modelo", "Precio Unitario (ARS)", "Subtotal (ARS)"]],
     body: items.map((item) => {
-      const subtotalUsd = item.cantidad * item.precio_unitario_venta;
+      const subtotalArs = item.cantidad * (item.precio_unitario_venta || item.precio_venta_unitario || 0);
       return [
         String(item.cantidad),
         item.modelo,
-        formatUSD(item.precio_unitario_venta),
-        formatUSD(subtotalUsd),
-        formatARS(subtotalUsd * valorDolarArs),
+        formatARS(item.precio_unitario_venta || item.precio_venta_unitario || 0),
+        formatARS(subtotalArs),
       ];
     }),
     headStyles: { fillColor: [20, 23, 28], textColor: [233, 231, 226] },
@@ -155,7 +152,7 @@ export function exportarTicketVentaPdf(
     startY: tableY + 8,
     theme: "plain",
     body: [
-      ["Total Venta", formatUSD(venta.total_venta), formatARS(venta.total_venta * valorDolarArs)],
+      ["Total Venta", "", formatARS(venta.total_venta)],
     ],
     styles: { fontSize: 12, fontStyle: "bold" },
     columnStyles: {

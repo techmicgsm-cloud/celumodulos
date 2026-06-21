@@ -25,31 +25,9 @@ export function NuevaVentaForm({
   ultimoFactorDolar: number
 }) {
   const router = useRouter();
-  const [cargandoDolar, setCargandoDolar] = useState(true);
-  const [errorDolar, setErrorDolar] = useState<string | null>(null);
-
-
-  useEffect(() => {
-    async function fetchDolarBlue() {
-      try {
-        const res = await fetch("https://dolarapi.com/v1/dolares/blue");
-        if (!res.ok) throw new Error("No se pudo obtener la cotización");
-        const data = await res.json();
-        setValorDolar(data.venta || 1300);
-      } catch (err) {
-        console.error(err);
-        setErrorDolar("No se pudo cargar el dólar automático.");
-      } finally {
-        setCargandoDolar(false);
-      }
-    }
-    fetchDolarBlue();
-  }, []);
-
   const [clienteId, setClienteId] = useState("");
   const [notas, setNotas] = useState("");
   const [metodoPago, setMetodoPago] = useState("efectivo");
-  const [valorDolar, setValorDolar] = useState(ultimoFactorDolar);
   
   const [usarSaldo, setUsarSaldo] = useState(false);
   const [saldoADescontar, setSaldoADescontar] = useState(0);
@@ -147,8 +125,7 @@ export function NuevaVentaForm({
               exportarTicketVentaPdf(
                 { id: ventaExitosa.id, created_at: new Date().toISOString(), metodo_pago: metodoPago, total_venta: ventaExitosa.total, notas },
                 ventaExitosa.items,
-                clienteSeleccionado,
-                valorDolar
+                clienteSeleccionado
               );
             }}
             className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-white"
@@ -206,32 +183,7 @@ export function NuevaVentaForm({
                 <option value="efectivo">Efectivo</option>
                 <option value="transferencia">Transferencia</option>
                 <option value="cuenta_corriente">Fiado (Cuenta Corriente)</option>
-              </select>
-            </div>
-            
-            <Field label="Cotización Dólar (ARS) del Día">
-              <div className="flex items-center gap-2">
-                <span className="text-slate-400">$</span>
-                <div className="relative flex-1">
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    required
-                    value={valorDolar}
-                    onChange={(e) => setValorDolar(parseFloat(e.target.value) || 0)}
-                    disabled={cargandoDolar}
-                    className={cargandoDolar ? "opacity-50" : ""}
-                  />
-                  {cargandoDolar && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-copper animate-pulse">
-                      Cargando Dólar Blue...
-                    </div>
-                  )}
-                </div>
-              </div>
-              {errorDolar && <p className="text-xs text-red-400 mt-1">{errorDolar}</p>}
-            </Field>
+
 
             <Field label="Notas / Referencia (Opcional)">
               <Input
@@ -264,10 +216,7 @@ export function NuevaVentaForm({
               <div className="text-right">
                 <span className="text-sm text-slate-400 block">Total de la venta</span>
                 <span className={`text-2xl font-bold ${usarSaldo && saldoADescontar > 0 ? 'text-slate-300 line-through text-xl' : 'text-emerald-400'}`}>
-                  {formatUSD(totalVenta)}
-                </span>
-                <span className="text-sm font-medium text-emerald-500/80 block mt-1">
-                  ≈ {formatARS(totalVenta * valorDolar)}
+                  {formatARS(totalVenta)}
                 </span>
               </div>
             </div>
@@ -316,7 +265,7 @@ export function NuevaVentaForm({
                 </div>
 
                 <div className="w-full md:w-1/5 space-y-1">
-                  <label className="text-xs font-medium text-slate-400">Precio Venta (USD)</label>
+                  <label className="text-xs font-medium text-slate-400">Precio Venta (ARS)</label>
                   <Input 
                     type="number"
                     step="0.01"
@@ -328,14 +277,11 @@ export function NuevaVentaForm({
                 </div>
 
                 <div className="w-full md:w-1/5 space-y-1">
-                  <label className="text-xs font-medium text-slate-400">Subtotal</label>
+                  <label className="text-xs font-medium text-slate-400">Subtotal (ARS)</label>
                   <div className="flex flex-col">
-                    <div className="h-10 flex items-center px-3 bg-slate-900 rounded-md border border-slate-800 text-white font-medium">
-                      {formatUSD(item.cantidad * (Number(item.precio_venta_unitario) || 0))}
+                    <div className="h-10 flex items-center px-3 bg-slate-900 rounded-md border border-slate-800 text-emerald-400 font-medium">
+                      {formatARS(item.cantidad * (Number(item.precio_venta_unitario) || 0))}
                     </div>
-                    <span className="text-xs text-emerald-500/80 font-medium mt-1.5 ml-1">
-                      ≈ {formatARS(item.cantidad * (Number(item.precio_venta_unitario) || 0) * valorDolar)}
-                    </span>
                   </div>
                 </div>
 
