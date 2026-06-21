@@ -87,7 +87,7 @@ export function NuevaVentaForm({
         setError("Todos los ítems deben tener un producto seleccionado.");
         return;
       }
-      const stockInfo = stockDisponible.find(s => s.modelo === item.modelo && s.sku === item.sku);
+      const stockInfo = stockDisponible.find(s => s.modelo === item.modelo && (s.sku || "") === (item.sku || ""));
       if (!stockInfo || item.cantidad > stockInfo.cantidad_disponible) {
         setError(`No hay suficiente stock para ${item.modelo}. Disponible: ${stockInfo?.cantidad_disponible || 0}`);
         return;
