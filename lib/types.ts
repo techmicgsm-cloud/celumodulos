@@ -91,6 +91,7 @@ export interface StockAgrupado {
   marca: string | null;
   categoria: string | null;
   cantidad_disponible: number;
+  precio_sugerido?: number;
 }
 
 export interface CatalogoItem extends StockAgrupado {
