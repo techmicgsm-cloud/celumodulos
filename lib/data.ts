@@ -212,6 +212,8 @@ export async function obtenerDevoluciones() {
     .select(`
       *,
       venta_item:venta_items(
+        id,
+        venta_id,
         modelo,
         precio_unitario_venta,
         venta:ventas(

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { RefreshCcw, Search, ExternalLink } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 import { obtenerDevoluciones } from "@/lib/data";
 
 export default async function DevolucionesPage() {
@@ -18,6 +19,12 @@ export default async function DevolucionesPage() {
             Historial de todos los módulos devueltos por clientes.
           </p>
         </div>
+        <Link href="/devoluciones/nueva">
+          <Button className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-black font-semibold">
+            <RefreshCcw className="mr-2 h-4 w-4" />
+            Nueva Devolución
+          </Button>
+        </Link>
       </div>
 
       <Card>
