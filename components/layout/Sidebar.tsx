@@ -27,7 +27,7 @@ export function Sidebar() {
         </div>
         <div className="leading-tight">
           <p className="text-sm font-semibold text-text-primary tracking-tight">
-            CeluImport
+            Voltrix
           </p>
           <p className="instrument-label text-[10px]">ERP de módulos</p>
         </div>

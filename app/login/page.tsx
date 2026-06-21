@@ -35,7 +35,7 @@ export default function LoginPage() {
             <Boxes size={24} />
           </div>
           <h1 className="text-2xl font-bold text-text-primary tracking-tight">
-            CeluImport ERP
+            Voltrix ERP
           </h1>
           <p className="text-text-muted text-sm">
             Gestión de importaciones y stock

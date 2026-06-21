@@ -20,7 +20,7 @@ export function MobileNav() {
         <div className="flex items-center justify-center w-7 h-7 rounded-md bg-bg-recessed border border-white/10 text-copper">
           <Cpu size={15} strokeWidth={1.75} />
         </div>
-        <p className="text-sm font-semibold text-text-primary">CeluImport</p>
+        <p className="text-sm font-semibold text-text-primary">Voltrix</p>
       </div>
       <nav className="flex px-2 pb-2 gap-1">
         {NAV_ITEMS.map((item) => {

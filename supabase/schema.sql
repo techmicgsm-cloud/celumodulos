@@ -1,5 +1,5 @@
 -- ============================================================================
--- CeluImport ERP v2 — Esquema Definitivo de Producción + Módulo de Ventas FIFO
+-- Voltrix ERP v2 — Esquema Definitivo de Producción + Módulo de Ventas FIFO
 -- ============================================================================
 
 create extension if not exists "pgcrypto";

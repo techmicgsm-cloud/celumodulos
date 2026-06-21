@@ -17,7 +17,7 @@ function encabezado(doc: jsPDF, titulo: string, subtitulo?: string) {
   doc.text(titulo, 14, 18);
   doc.setFontSize(10);
   doc.setTextColor(...TEXTO_MUTED);
-  doc.text(subtitulo ?? "CeluImport ERP — Gestión de importación de módulos", 14, 25);
+  doc.text(subtitulo ?? "Voltrix ERP — Gestión de importación de módulos", 14, 25);
   doc.setTextColor(20, 20, 20);
 }
 
