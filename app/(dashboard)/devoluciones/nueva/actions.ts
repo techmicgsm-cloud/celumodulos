@@ -27,6 +27,20 @@ export async function buscarVentasPorFiltro(filtro: string) {
   if (isPosibleUUID && /^[0-9a-fA-F-]+$/.test(filtro)) {
     // Si parece un UUID, intentar match por texto
     query = query.ilike("id", `${filtro}%`);
+  } else if (!isNaN(Number(filtro))) {
+    // Buscar por numero_cliente
+    const { data: clienteData } = await supabase
+      .from("clientes")
+      .select("id")
+      .eq("numero_cliente", Number(filtro))
+      .single();
+      
+    if (clienteData) {
+      query = query.eq("cliente_id", clienteData.id);
+    } else {
+      // Cliente no encontrado, evitar devolver resultados incorrectos
+      query = query.eq("id", "00000000-0000-0000-0000-000000000000");
+    }
   } else {
     // Buscar por cliente
     query = query.ilike("cliente_nombre", `%${filtro}%`);

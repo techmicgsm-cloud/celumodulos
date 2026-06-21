@@ -104,11 +104,11 @@ export default function NuevaDevolucionPage() {
         <Card className="p-6">
           <form onSubmit={handleBuscar} className="flex gap-4">
             <div className="flex-1">
-              <label className="text-xs font-medium text-slate-400 mb-1 block">Buscar por ID de Ticket o Nombre de Cliente</label>
+              <label className="text-xs font-medium text-slate-400 mb-1 block">Buscar por ID de Ticket o Número de Cliente</label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                 <Input 
-                  placeholder="Ej: F3A82337 o 'Juan'" 
+                  placeholder="Ej: F3A82337 o '0002'" 
                   className="pl-10"
                   value={filtro}
                   onChange={(e) => setFiltro(e.target.value)}
