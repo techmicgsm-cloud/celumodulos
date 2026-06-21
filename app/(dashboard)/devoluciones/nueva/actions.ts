@@ -24,11 +24,8 @@ export async function buscarVentasPorFiltro(filtro: string) {
     .order("created_at", { ascending: false })
     .limit(10);
     
-  if (isPosibleUUID && /^[0-9a-fA-F-]+$/.test(filtro)) {
-    // Si parece un UUID, intentar match por texto
-    query = query.ilike("id", `${filtro}%`);
-  } else if (!isNaN(Number(filtro))) {
-    // Buscar por numero_cliente
+  if (!isNaN(Number(filtro)) && !filtro.includes('-')) {
+    // Si es puro número (y no un UUID con guiones), buscar por numero_cliente o ticket numérico
     const { data: clienteData } = await supabase
       .from("clientes")
       .select("id")
@@ -36,11 +33,15 @@ export async function buscarVentasPorFiltro(filtro: string) {
       .single();
       
     if (clienteData) {
-      query = query.eq("cliente_id", clienteData.id);
+      // Buscar por cliente o por si el ID del ticket empieza justo con esos números
+      query = query.or(`cliente_id.eq.${clienteData.id},id.ilike.${filtro}%`);
     } else {
-      // Cliente no encontrado, evitar devolver resultados incorrectos
-      query = query.eq("id", "00000000-0000-0000-0000-000000000000");
+      // Cliente no encontrado, intentar solo como prefijo de ticket ID
+      query = query.ilike("id", `${filtro}%`);
     }
+  } else if (isPosibleUUID && /^[0-9a-fA-F-]+$/.test(filtro)) {
+    // Si parece un UUID, intentar match por texto
+    query = query.ilike("id", `${filtro}%`);
   } else {
     // Buscar por cliente
     query = query.ilike("cliente_nombre", `%${filtro}%`);
