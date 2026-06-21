@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, History, PackagePlus, Cpu, ShoppingCart, Users, LogOut, RefreshCcw, LayoutGrid } from "lucide-react";
+import { LayoutDashboard, History, PackagePlus, Cpu, ShoppingCart, Users, LogOut, RefreshCcw, LayoutGrid, Wallet } from "lucide-react";
 import clsx from "clsx";
 import { logout } from "@/app/login/actions";
 
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: "/importaciones", label: "Importaciones", icon: History },
   { href: "/importaciones/nueva", label: "Nueva importación", icon: PackagePlus },
   { href: "/devoluciones", label: "Devoluciones", icon: RefreshCcw },
+  { href: "/caja", label: "Caja", icon: Wallet },
   { href: "/catalogo", label: "Catálogo", icon: LayoutGrid },
 ] as const;
 

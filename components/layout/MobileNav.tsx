@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, History, PackagePlus, Cpu } from "lucide-react";
+import { LayoutDashboard, History, PackagePlus, Cpu, Wallet } from "lucide-react";
 import clsx from "clsx";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/importaciones", label: "Importaciones", icon: History },
   { href: "/importaciones/nueva", label: "Nueva", icon: PackagePlus },
+  { href: "/caja", label: "Caja", icon: Wallet },
 ] as const;
 
 export function MobileNav() {

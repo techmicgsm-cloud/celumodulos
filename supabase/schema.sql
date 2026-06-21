@@ -156,6 +156,17 @@ create table if not exists public.devoluciones (
   monto_acreditado numeric(14, 2) not null
 );
 
+-- Tabla: movimientos_caja (Ingresos y Egresos manuales)
+create table if not exists public.movimientos_caja (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  tipo text not null check (tipo in ('ingreso', 'egreso')),
+  monto numeric(14, 2) not null check (monto > 0),
+  metodo_pago text not null default 'efectivo',
+  concepto text not null
+);
+
 -- Tabla: productos_catalogo
 create table if not exists public.productos_catalogo (
   id uuid primary key default gen_random_uuid(),
@@ -474,6 +485,8 @@ create index if not exists idx_movimientos_cc_cliente_id on public.movimientos_c
 create index if not exists idx_devoluciones_user_id on public.devoluciones(user_id);
 create index if not exists idx_devoluciones_venta_item_id on public.devoluciones(venta_item_id);
 
+create index if not exists idx_movimientos_caja_user_id on public.movimientos_caja(user_id);
+
 -- ----------------------------------------------------------------------------
 -- 9. Configuración del Bucket de facturas (STORAGE)
 -- ----------------------------------------------------------------------------
@@ -495,6 +508,7 @@ alter table public.venta_items enable row level security;
 alter table public.venta_item_lotes enable row level security;
 alter table public.movimientos_cc enable row level security;
 alter table public.devoluciones enable row level security;
+alter table public.movimientos_caja enable row level security;
 alter table public.productos_catalogo enable row level security;
 
 -- Limpiar políticas anteriores por precaución
@@ -508,6 +522,7 @@ drop policy if exists "Aislamiento venta items" on public.venta_items;
 drop policy if exists "Aislamiento venta item lotes" on public.venta_item_lotes;
 drop policy if exists "Aislamiento movimientos_cc" on public.movimientos_cc;
 drop policy if exists "Aislamiento devoluciones" on public.devoluciones;
+drop policy if exists "Aislamiento movimientos_caja" on public.movimientos_caja;
 drop policy if exists "Aislamiento productos_catalogo" on public.productos_catalogo;
 drop policy if exists "Aislamiento productos_catalogo (public)" on public.productos_catalogo;
 drop policy if exists "Acceso a facturas propias" on storage.objects;
@@ -567,7 +582,7 @@ create policy "Aislamiento venta item lotes"
     )
   );
 
--- Políticas: Cuenta Corriente y Devoluciones
+-- Políticas: Cuenta Corriente, Devoluciones y Caja
 create policy "Aislamiento movimientos_cc" 
   on public.movimientos_cc for all 
   using (auth.uid() = user_id)
@@ -575,6 +590,11 @@ create policy "Aislamiento movimientos_cc"
 
 create policy "Aislamiento devoluciones" 
   on public.devoluciones for all 
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create policy "Aislamiento movimientos_caja" 
+  on public.movimientos_caja for all 
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
