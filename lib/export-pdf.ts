@@ -113,61 +113,78 @@ export function exportarTicketVentaPdf(
   items: any[],
   cliente: any | null
 ) {
-  const doc = new jsPDF();
-  encabezado(doc, "Comprobante de Venta", `Fecha: ${formatFecha(venta.created_at)}`);
+  // Formato ticket térmico (80mm ancho, largo dinámico aproximado 297mm)
+  const doc = new jsPDF({ format: [80, 297], unit: "mm" });
+  
+  // Encabezado simple centrado
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.text("Voltrix ERP", 40, 12, { align: "center" });
+  
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.text("Comprobante de Venta", 40, 18, { align: "center" });
+  doc.setFontSize(8);
+  doc.text(`Fecha: ${formatFecha(venta.created_at)}`, 40, 23, { align: "center" });
+  
+  doc.line(5, 26, 75, 26);
 
+  // Datos del cliente
+  doc.setFontSize(8);
+  const clienteStr = cliente ? `[#${String(cliente.numero_cliente).padStart(4, '0')}] ${cliente.nombre_local}` : "Consumidor Final";
+  doc.text(`Cliente: ${clienteStr}`, 5, 32);
+  
+  const metodoPago = venta.metodo_pago === 'cuenta_corriente' ? 'Fiado (C.C.)' : (venta.metodo_pago === 'transferencia' ? 'Transferencia' : 'Efectivo');
+  doc.text(`Pago: ${metodoPago}`, 5, 37);
+
+  doc.line(5, 40, 75, 40);
+
+  // Tabla de items usando autoTable ajustado para ticket
   autoTable(doc, {
-    startY: 32,
+    startY: 42,
+    margin: { left: 5, right: 5 },
     theme: "plain",
-    body: [
-      ["Cliente / Técnico", cliente ? `[#${String(cliente.numero_cliente).padStart(4, '0')}] ${cliente.nombre_local}` : "Consumidor Final"],
-      ["Método de Pago", venta.metodo_pago === 'cuenta_corriente' ? 'Cuenta Corriente (Fiado)' : (venta.metodo_pago === 'transferencia' ? 'Transferencia' : 'Efectivo')],
-    ],
-    styles: { fontSize: 10 },
-    columnStyles: { 0: { fontStyle: "bold", textColor: TEXTO_MUTED } },
-  });
-
-  const startY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
-
-  autoTable(doc, {
-    startY: startY + 8,
-    head: [["Cant.", "Modelo", "Precio Unitario (ARS)", "Subtotal (ARS)"]],
+    head: [["Cant", "Articulo", "Total"]],
     body: items.map((item) => {
       const subtotalArs = item.cantidad * (item.precio_unitario_venta || item.precio_venta_unitario || 0);
       return [
         String(item.cantidad),
-        item.modelo,
-        formatARS(item.precio_unitario_venta || item.precio_venta_unitario || 0),
+        item.modelo.substring(0, 20), // Truncar nombre muy largo
         formatARS(subtotalArs),
       ];
     }),
-    headStyles: { fillColor: [20, 23, 28], textColor: [233, 231, 226] },
-    styles: { fontSize: 9 },
-    alternateRowStyles: { fillColor: [245, 245, 245] },
-  });
-
-  const tableY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
-
-  autoTable(doc, {
-    startY: tableY + 8,
-    theme: "plain",
-    body: [
-      ["Total Venta", "", formatARS(venta.total_venta)],
-    ],
-    styles: { fontSize: 12, fontStyle: "bold" },
+    headStyles: { fontSize: 8, fontStyle: "bold", textColor: [0, 0, 0], halign: "left" },
+    bodyStyles: { fontSize: 8, textColor: [0, 0, 0] },
     columnStyles: {
-      0: { textColor: TEXTO_MUTED, halign: "right" },
-      1: { textColor: TITULO_COLOR, halign: "right" },
-      2: { textColor: [34, 197, 94], halign: "right" },
+      0: { cellWidth: 10 },
+      1: { cellWidth: 35 },
+      2: { cellWidth: 25, halign: "right" },
     },
   });
 
+  const tableY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
+  
+  doc.line(5, tableY + 2, 75, tableY + 2);
+
+  // Total
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  doc.text("TOTAL", 5, tableY + 8);
+  doc.text(formatARS(venta.total_venta), 75, tableY + 8, { align: "right" });
+
+  let finalY = tableY + 16;
   if (venta.notas) {
-    const finalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
-    doc.setFontSize(9);
-    doc.setTextColor(...TEXTO_MUTED);
-    doc.text(`Notas: ${venta.notas}`, 14, finalY + 10);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    const splitNotas = doc.splitTextToSize(`Notas: ${venta.notas}`, 70);
+    doc.text(splitNotas, 5, finalY);
+    finalY += splitNotas.length * 4;
   }
+  
+  // Pie de ticket
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "italic");
+  doc.text("¡Gracias por su compra!", 40, finalY + 4, { align: "center" });
 
   doc.save(`venta-${venta.id.split('-')[0]}-${Date.now()}.pdf`);
 }
