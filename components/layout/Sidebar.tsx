@@ -8,10 +8,10 @@ import { logout } from "@/app/login/actions";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/ventas", label: "Ventas", icon: ShoppingCart },
+  { href: "/clientes", label: "Clientes", icon: Users },
   { href: "/importaciones", label: "Importaciones", icon: History },
   { href: "/importaciones/nueva", label: "Nueva importación", icon: PackagePlus },
-  { href: "/clientes", label: "Clientes", icon: Users },
-  { href: "/ventas", label: "Ventas", icon: ShoppingCart },
   { href: "/devoluciones", label: "Devoluciones", icon: RefreshCcw },
   { href: "/catalogo", label: "Catálogo", icon: LayoutGrid },
 ] as const;
