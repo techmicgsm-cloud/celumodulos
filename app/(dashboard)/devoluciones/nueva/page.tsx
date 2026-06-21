@@ -26,7 +26,9 @@ export default function NuevaDevolucionPage() {
 
   async function handleBuscar(e: React.FormEvent) {
     e.preventDefault();
-    if (!filtro || filtro.length < 3) return;
+    if (!filtro) return;
+    // Permitir búsquedas cortas si es un número (para IDs de cliente como "1" o "12")
+    if (isNaN(Number(filtro)) && filtro.length < 3) return;
     
     setBuscando(true);
     setVentaSeleccionada(null);
@@ -154,6 +156,12 @@ export default function NuevaDevolucionPage() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {resultados.length === 0 && !buscando && filtro !== "" && (
+            <div className="mt-6 text-center text-slate-500 text-sm">
+              No se encontraron ventas para esta búsqueda.
             </div>
           )}
         </Card>
