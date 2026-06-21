@@ -3,7 +3,8 @@ import { Plus, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { obtenerVentas } from "@/lib/data";
-import { formatUSD } from "@/lib/calculations";
+import { formatARS } from "@/lib/calculations";
+import { BotonImprimirTicket } from "@/components/ventas/BotonImprimirTicket";
 
 export default async function VentasPage() {
   const ventas = await obtenerVentas();
@@ -51,6 +52,7 @@ export default async function VentasPage() {
                     <th className="px-4 py-3 text-right">Total Venta</th>
                     <th className="px-4 py-3 text-right">Costo Total</th>
                     <th className="px-4 py-3 text-right text-emerald-400">Ganancia</th>
+                    <th className="px-4 py-3 text-center">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800">
@@ -63,13 +65,16 @@ export default async function VentasPage() {
                         {venta.cliente?.nombre_local || venta.cliente_nombre || "Consumidor Final"}
                       </td>
                       <td className="px-4 py-3 text-right font-medium text-white">
-                        {formatUSD(venta.total_venta)}
+                        {formatARS(venta.total_venta)}
                       </td>
                       <td className="px-4 py-3 text-right text-slate-400">
-                        {formatUSD(venta.total_costo)}
+                        {formatARS(venta.total_costo)}
                       </td>
                       <td className="px-4 py-3 text-right font-bold text-emerald-400">
-                        {formatUSD(venta.ganancia_neta)}
+                        {formatARS(venta.ganancia_neta)}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <BotonImprimirTicket ventaId={venta.id} />
                       </td>
                     </tr>
                   ))}

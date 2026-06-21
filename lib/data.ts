@@ -187,7 +187,7 @@ export async function obtenerVentaPorId(id: string) {
     .from("ventas")
     .select(`
       *,
-      cliente:clientes(nombre_local),
+      cliente:clientes(nombre_local, numero_cliente),
       items:venta_items(*)
     `)
     .eq("id", id)
