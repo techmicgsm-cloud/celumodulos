@@ -25,6 +25,27 @@ export function NuevaVentaForm({
   ultimoFactorDolar: number
 }) {
   const router = useRouter();
+  const [cargandoDolar, setCargandoDolar] = useState(true);
+  const [errorDolar, setErrorDolar] = useState<string | null>(null);
+
+
+  useEffect(() => {
+    async function fetchDolarBlue() {
+      try {
+        const res = await fetch("https://dolarapi.com/v1/dolares/blue");
+        if (!res.ok) throw new Error("No se pudo obtener la cotización");
+        const data = await res.json();
+        setValorDolar(data.venta || 1300);
+      } catch (err) {
+        console.error(err);
+        setErrorDolar("No se pudo cargar el dólar automático.");
+      } finally {
+        setCargandoDolar(false);
+      }
+    }
+    fetchDolarBlue();
+  }, []);
+
   const [clienteId, setClienteId] = useState("");
   const [notas, setNotas] = useState("");
   const [metodoPago, setMetodoPago] = useState("efectivo");
@@ -188,18 +209,28 @@ export function NuevaVentaForm({
               </select>
             </div>
             
-            <Field label="Cotización Dólar (ARS)">
+            <Field label="Cotización Dólar (ARS) del Día">
               <div className="flex items-center gap-2">
                 <span className="text-slate-400">$</span>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  required
-                  value={valorDolar}
-                  onChange={(e) => setValorDolar(parseFloat(e.target.value) || 0)}
-                />
+                <div className="relative flex-1">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    required
+                    value={valorDolar}
+                    onChange={(e) => setValorDolar(parseFloat(e.target.value) || 0)}
+                    disabled={cargandoDolar}
+                    className={cargandoDolar ? "opacity-50" : ""}
+                  />
+                  {cargandoDolar && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-copper animate-pulse">
+                      Cargando Dólar Blue...
+                    </div>
+                  )}
+                </div>
               </div>
+              {errorDolar && <p className="text-xs text-red-400 mt-1">{errorDolar}</p>}
             </Field>
 
             <Field label="Notas / Referencia (Opcional)">
