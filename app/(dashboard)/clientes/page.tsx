@@ -40,59 +40,61 @@ export default async function ClientesPage() {
             </Link>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 px-5 pb-5 pt-2">
-            {clientes.map((cliente) => (
-              <Link href={`/clientes/${cliente.id}`} key={cliente.id}>
-              <div 
-                className="bg-slate-900/50 p-5 rounded-lg border border-slate-800 hover:border-copper/50 transition-colors relative overflow-hidden h-full flex flex-col"
-              >
-                <div className="absolute top-0 right-0 bg-copper/10 text-copper px-3 py-1 rounded-bl-lg text-xs font-bold">
-                  #{String(cliente.numero_cliente).padStart(4, '0')}
-                </div>
-                <h3 className="font-semibold text-lg text-white mb-3 pr-12 flex items-start justify-between">
-                  {cliente.nombre_local}
-                </h3>
-                
-                <div className="space-y-2 text-sm text-slate-400">
-                  {cliente.telefono ? (
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-slate-500" />
-                      <span>{cliente.telefono}</span>
-                    </div>
-                  ) : null}
-                  
-                  {cliente.email ? (
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-slate-500" />
-                      <span className="truncate">{cliente.email}</span>
-                    </div>
-                  ) : null}
-                  
-                  {cliente.direccion ? (
-                    <div className="flex items-start gap-2">
-                      <MapPin className="h-4 w-4 text-slate-500 shrink-0 mt-0.5" />
-                      <span className="line-clamp-2">{cliente.direccion}</span>
-                    </div>
-                  ) : null}
-                </div>
-
-                {cliente.notas && (
-                  <div className="mt-4 pt-4 border-t border-slate-800/50 text-xs text-slate-500 italic line-clamp-2">
-                    {cliente.notas}
-                  </div>
-                )}
-                <div className="mt-auto pt-4 flex items-center justify-between text-sm">
-                   <div className="flex items-center gap-1.5 text-slate-400">
-                     <Wallet className="w-4 h-4" />
-                     Saldo a favor:
-                   </div>
-                   <div className={`font-mono font-bold ${cliente.saldo_actual > 0 ? 'text-green-400' : 'text-slate-300'}`}>
-                     ${Number(cliente.saldo_actual).toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                   </div>
-                </div>
-              </div>
-              </Link>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="text-xs uppercase bg-slate-900/50 text-slate-400 border-y border-slate-800">
+                <tr>
+                  <th className="px-6 py-3 font-semibold">Nº Cliente</th>
+                  <th className="px-6 py-3 font-semibold">Nombre o Local</th>
+                  <th className="px-6 py-3 font-semibold">Contacto</th>
+                  <th className="px-6 py-3 font-semibold text-right">Saldo a favor</th>
+                  <th className="px-6 py-3 font-semibold text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/50">
+                {clientes.map((cliente) => (
+                  <tr key={cliente.id} className="hover:bg-slate-800/30 transition-colors">
+                    <td className="px-6 py-4 text-slate-400 font-mono">
+                      #{String(cliente.numero_cliente).padStart(4, '0')}
+                    </td>
+                    <td className="px-6 py-4 text-white font-medium">
+                      {cliente.nombre_local}
+                    </td>
+                    <td className="px-6 py-4 text-slate-400">
+                      <div className="flex flex-col gap-1">
+                        {cliente.telefono && (
+                          <div className="flex items-center gap-1.5">
+                            <Phone className="w-3.5 h-3.5" />
+                            {cliente.telefono}
+                          </div>
+                        )}
+                        {cliente.email && (
+                          <div className="flex items-center gap-1.5">
+                            <Mail className="w-3.5 h-3.5" />
+                            {cliente.email}
+                          </div>
+                        )}
+                        {!cliente.telefono && !cliente.email && (
+                          <span className="text-slate-600 italic">Sin contacto</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className={`font-mono font-medium ${cliente.saldo_actual > 0 ? 'text-green-400' : 'text-slate-300'}`}>
+                        ${Number(cliente.saldo_actual).toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <Link href={`/clientes/${cliente.id}`}>
+                        <Button variant="secondary" size="sm" className="bg-slate-800 hover:bg-slate-700 text-xs py-1 h-7">
+                          Ver Perfil
+                        </Button>
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </Card>
