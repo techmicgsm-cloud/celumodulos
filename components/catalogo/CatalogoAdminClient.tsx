@@ -123,12 +123,12 @@ export function CatalogoAdminClient({
                 <th className="px-6 py-3 font-semibold">Modelo</th>
                 <th className="px-6 py-3 font-semibold text-center">Stock</th>
                 <th className="px-6 py-3 font-semibold text-right">Costo Promedio</th>
-                <th className="px-6 py-3 font-semibold text-right">Precio Público (+{margenDefecto}%)</th>
+                <th className="px-6 py-3 font-semibold text-right">Precio Público (+{margenLocal}%)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50">
               {filtered.map(item => {
-                const precioPublico = item.costo_real_unitario_promedio * (1 + margenDefecto / 100);
+                const precioPublico = item.costo_real_unitario_promedio * (1 + margenLocal / 100);
                 return (
                   <tr key={item.modelo} className="hover:bg-slate-800/30 transition-colors">
                     <td className="px-6 py-4">
