@@ -17,7 +17,7 @@ import {
   formatARS,
   formatUSD,
 } from "@/lib/calculations";
-import { crearImportacion } from "@/app/(dashboard)/importaciones/nueva/actions";
+import { crearImportacion, actualizarImportacion } from "@/app/(dashboard)/importaciones/nueva/actions";
 import { extraerDatosFactura } from "@/app/importaciones/nueva/ai-actions";
 
 function nuevoItem(): ModeloFormInput {
@@ -32,14 +32,34 @@ function nuevoItem(): ModeloFormInput {
   };
 }
 
-export function NuevaImportacionForm() {
+export function ImportacionForm({
+  importacionId,
+  initialData
+}: {
+  importacionId?: string;
+  initialData?: any;
+}) {
   const router = useRouter();
 
-  const [nombre, setNombre] = useState("");
-  const [totalUsd, setTotalUsd] = useState<number>(0);
-  const [gastoPesos, setGastoPesos] = useState<number>(0);
+  const [nombre, setNombre] = useState(initialData?.nombre || "");
+  const [totalUsd, setTotalUsd] = useState<number>(initialData?.total_usd_mercaderia || 0);
+  const [gastoPesos, setGastoPesos] = useState<number>(initialData?.gasto_total_pesos || 0);
   const [factura, setFactura] = useState<File | null>(null);
-  const [items, setItems] = useState<ModeloFormInput[]>([nuevoItem()]);
+  const [items, setItems] = useState<ModeloFormInput[]>(() => {
+    if (initialData?.items && initialData.items.length > 0) {
+      return initialData.items.map((i: any) => ({
+        id: i.id,
+        clienteId: crypto.randomUUID(),
+        marca: i.marca || "",
+        categoria: i.categoria || "",
+        modelo: i.modelo || "",
+        sku: i.sku || "",
+        cantidad: i.cantidad_inicial || 1,
+        precioUsdUnitario: i.precio_usd_unitario || 0,
+      }));
+    }
+    return [nuevoItem()];
+  });
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [procesandoIA, setProcesandoIA] = useState(false);
@@ -92,7 +112,6 @@ export function NuevaImportacionForm() {
       }
       
       if (res.data && res.data.length > 0) {
-        // Mapear respuesta de IA al formato de UI
         const nuevosItems = res.data.map((item: any) => ({
           clienteId: crypto.randomUUID(),
           marca: item.marca || "",
@@ -103,7 +122,6 @@ export function NuevaImportacionForm() {
           precioUsdUnitario: item.precioUsdUnitario || 0,
         }));
         
-        // Si hay una sola fila vacía, la reemplazamos. Si no, agregamos al final.
         if (items.length === 1 && !items[0].modelo && items[0].cantidad === 1 && items[0].precioUsdUnitario === 0) {
           setItems(nuevosItems);
         } else {
@@ -145,6 +163,7 @@ export function NuevaImportacionForm() {
       "items",
       JSON.stringify(
         items.map((i) => ({
+          id: i.id,
           marca: i.marca,
           categoria: i.categoria,
           modelo: i.modelo,
@@ -156,7 +175,10 @@ export function NuevaImportacionForm() {
     );
     if (factura) formData.set("factura", factura);
 
-    const resultado = await crearImportacion(formData);
+    const resultado = importacionId 
+      ? await actualizarImportacion(importacionId, formData)
+      : await crearImportacion(formData);
+      
     setEnviando(false);
 
     if (resultado.error) {

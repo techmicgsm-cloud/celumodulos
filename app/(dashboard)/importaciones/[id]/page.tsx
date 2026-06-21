@@ -44,7 +44,15 @@ export default async function ImportacionDetallePage({
               Registrada el {formatFecha(importacion.created_at)}
             </p>
           </div>
-          <ExportButtons tipo="detalle" importacion={importacion} modelos={modelos} />
+          <div className="flex items-center gap-3">
+            <Link 
+              href={`/importaciones/${importacion.id}/editar`}
+              className="inline-flex items-center gap-2 rounded-md bg-slate-800 hover:bg-slate-700 px-3 py-1.5 text-sm font-medium text-white transition-colors border border-slate-700"
+            >
+              Editar Importación
+            </Link>
+            <ExportButtons tipo="detalle" importacion={importacion} modelos={modelos} />
+          </div>
         </div>
       </div>
 

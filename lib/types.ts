@@ -38,6 +38,7 @@ export interface ImportacionConModelos extends Importacion {
 
 /** Fila editable en el formulario de nueva importación, antes de persistir. */
 export interface ModeloFormInput {
+  id?: string; // id real de base de datos si existe
   clienteId: string; // id temporal solo para el formulario (key de React)
   marca: string;
   categoria: string;
