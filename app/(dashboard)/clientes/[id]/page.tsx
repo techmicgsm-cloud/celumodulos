@@ -4,7 +4,7 @@ import { ArrowLeft, User, Phone, Mail, MapPin, Wallet, Calendar, FileText, Arrow
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { obtenerClientePorId, obtenerMovimientosCC } from "@/lib/data";
-import { eliminarCliente } from "@/app/(dashboard)/clientes/actions";
+import { DeleteClientButton } from "@/components/ui/DeleteClientButton";
 
 export default async function ClienteProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -39,20 +39,7 @@ export default async function ClienteProfilePage({ params }: { params: Promise<{
                 Editar
               </Button>
             </Link>
-            <form action={eliminarCliente.bind(null, cliente.id)}>
-              <Button 
-                type="submit" 
-                variant="secondary" 
-                className="border-red-900/50 text-red-400 hover:bg-red-900/20 hover:text-red-300"
-                onClick={(e) => {
-                  if (!confirm("¿Estás seguro de que quieres eliminar a este cliente? Se eliminarán también sus movimientos de cuenta corriente. Las ventas realizadas se mantendrán pero perderán el vínculo con el cliente.")) {
-                    e.preventDefault();
-                  }
-                }}
-              >
-                Eliminar
-              </Button>
-            </form>
+            <DeleteClientButton clienteId={cliente.id} />
           </div>
         </div>
       </div>
