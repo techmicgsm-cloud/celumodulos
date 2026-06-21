@@ -153,9 +153,20 @@ export function exportarTicketVentaPdf(
     head: [["Cant", "Articulo", "Total"]],
     body: items.map((item) => {
       const subtotalArs = item.cantidad * (item.precio_unitario_venta || item.precio_venta_unitario || 0);
+      
+      // Intentar armar un nombre descriptivo ("Módulo Samsung A02")
+      let nombreLargo = item.modelo;
+      if (item.marca || item.categoria) {
+        nombreLargo = `${item.categoria || ""} ${item.marca || ""} ${item.modelo}`.trim();
+      } else if (item.lotes && item.lotes.length > 0 && item.lotes[0].importacion_item) {
+        const cat = item.lotes[0].importacion_item.categoria;
+        const mar = item.lotes[0].importacion_item.marca;
+        nombreLargo = `${cat || ""} ${mar || ""} ${item.modelo}`.trim();
+      }
+
       return [
         String(item.cantidad),
-        item.modelo.substring(0, 20), // Truncar nombre muy largo
+        nombreLargo.substring(0, 30), // Truncar nombre muy largo (aumentado a 30 caracteres)
         formatARS(subtotalArs),
       ];
     }),

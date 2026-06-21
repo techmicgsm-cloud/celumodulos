@@ -101,10 +101,19 @@ export function NuevaVentaForm({
       setError(result.error);
       setEnviando(false);
     } else {
+      const enrichedItems = items.map(item => {
+        const stockInfo = stockDisponible.find(s => s.modelo === item.modelo && (s.sku || "") === (item.sku || ""));
+        return {
+          ...item,
+          marca: stockInfo?.marca || "",
+          categoria: stockInfo?.categoria || ""
+        };
+      });
+
       setVentaExitosa({
         id: result.ventaId,
         total: totalVenta,
-        items: items
+        items: enrichedItems
       });
       setEnviando(false);
     }
