@@ -23,9 +23,22 @@ export async function buscarVentasPorFiltro(filtro: string) {
     `)
     .order("created_at", { ascending: false })
     .limit(10);
-    
-  if (!isNaN(Number(filtro)) && !filtro.includes('-')) {
-    // Si es puro número (y no un UUID con guiones), buscar por numero_cliente o ticket numérico
+
+  const isNumeric = !isNaN(Number(filtro)) && !filtro.includes('-');
+  const isPosibleUUID = filtro.length >= 4 && /^[0-9a-fA-F-]+$/.test(filtro);
+
+  // Helper para buscar prefijos de UUID
+  const formatUuid = (hex: string) => `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20,32)}`;
+  const getUuidRange = (prefix: string) => {
+    const clean = prefix.toLowerCase().replace(/-/g, '');
+    if (clean.length > 32) return null;
+    return {
+      min: formatUuid(clean.padEnd(32, '0')),
+      max: formatUuid(clean.padEnd(32, 'f'))
+    };
+  };
+
+  if (isNumeric) {
     const { data: clienteData } = await supabase
       .from("clientes")
       .select("id")
@@ -33,17 +46,25 @@ export async function buscarVentasPorFiltro(filtro: string) {
       .single();
       
     if (clienteData) {
-      // Buscar por cliente o por si el ID del ticket empieza justo con esos números
-      query = query.or(`cliente_id.eq.${clienteData.id},id.ilike.${filtro}%`);
+      query = query.eq("cliente_id", clienteData.id);
     } else {
-      // Cliente no encontrado, intentar solo como prefijo de ticket ID
-      query = query.ilike("id", `${filtro}%`);
+      // Si no es un cliente, intentar como UUID (ticket numérico corto)
+      const range = getUuidRange(filtro);
+      if (range) {
+        query = query.gte("id", range.min).lte("id", range.max);
+      } else {
+        query = query.eq("id", "00000000-0000-0000-0000-000000000000");
+      }
     }
-  } else if (isPosibleUUID && /^[0-9a-fA-F-]+$/.test(filtro)) {
-    // Si parece un UUID, intentar match por texto
-    query = query.ilike("id", `${filtro}%`);
+  } else if (isPosibleUUID) {
+    const range = getUuidRange(filtro);
+    if (range) {
+      query = query.gte("id", range.min).lte("id", range.max);
+    } else {
+      query = query.ilike("cliente_nombre", `%${filtro}%`);
+    }
   } else {
-    // Buscar por cliente
+    // Buscar por nombre de cliente
     query = query.ilike("cliente_nombre", `%${filtro}%`);
   }
 
