@@ -5,9 +5,10 @@ import { ImportacionForm } from "@/components/forms/ImportacionForm";
 export default async function EditarImportacionPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const supabase = await createClient();
+  const { id } = await params;
 
   const { data: importacion } = await supabase
     .from("importaciones")
@@ -15,7 +16,7 @@ export default async function EditarImportacionPage({
       *,
       items:importacion_items(*)
     `)
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (!importacion) {
