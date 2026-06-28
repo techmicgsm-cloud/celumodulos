@@ -98,6 +98,7 @@ export interface StockAgrupado {
 export interface CatalogoItem extends StockAgrupado {
   costo_real_unitario_promedio: number;
   imagen_url: string | null;
+  margen_publico?: number | null;
 }
 
 export interface MovimientoCC {

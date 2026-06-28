@@ -173,6 +173,7 @@ create table if not exists public.productos_catalogo (
   user_id uuid not null references public.profiles(id) on delete cascade,
   modelo text not null,
   imagen_url text,
+  margen_publico numeric(5,2),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (user_id, modelo)
@@ -443,7 +444,11 @@ begin
       'marca', grouped.marca,
       'categoria', grouped.categoria,
       'cantidad_disponible', grouped.total_disp,
-      'precio_publico', (grouped.costo_promedio * (1 + (coalesce((select margen_publico_defecto from public.profiles where id = p_user_id), 40) / 100))),
+      'precio_publico', (grouped.costo_promedio * (1 + (coalesce(
+        (select margen_publico from public.productos_catalogo pc where pc.modelo = grouped.modelo and pc.user_id = p_user_id limit 1),
+        (select margen_publico_defecto from public.profiles where id = p_user_id), 
+        40
+      ) / 100))),
       'imagen_url', (select imagen_url from public.productos_catalogo pc where pc.modelo = grouped.modelo and pc.user_id = p_user_id limit 1)
     )
   )

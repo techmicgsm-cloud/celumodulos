@@ -85,3 +85,40 @@ export async function actualizarMargenPublico(formData: FormData) {
 
   return { success: true };
 }
+
+export async function actualizarMargenModelo(modelo: string, margen: number | null) {
+  if (!modelo) return { error: "Modelo no válido." };
+  
+  if (margen !== null && (isNaN(margen) || margen < 0)) {
+    return { error: "Margen inválido." };
+  }
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "Usuario no autenticado." };
+  }
+
+  // Upsert into productos_catalogo
+  const { error: dbError } = await supabase
+    .from("productos_catalogo")
+    .upsert({
+      user_id: user.id,
+      modelo: modelo,
+      margen_publico: margen,
+      updated_at: new Date().toISOString()
+    }, {
+      onConflict: 'user_id, modelo'
+    });
+
+  if (dbError) {
+    console.error("Error saving margin to DB:", dbError);
+    return { error: "Error al guardar el margen del producto." };
+  }
+
+  revalidatePath("/catalogo");
+  revalidatePath("/c/catalogo");
+
+  return { success: true };
+}

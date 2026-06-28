@@ -7,7 +7,7 @@ import { Card, CardHeader } from "@/components/ui/Card";
 import { Input, Field } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { CatalogoItem } from "@/lib/types";
-import { subirImagenCatalogo, actualizarMargenPublico } from "@/lib/catalogo-actions";
+import { subirImagenCatalogo, actualizarMargenPublico, actualizarMargenModelo } from "@/lib/catalogo-actions";
 import { formatUSD } from "@/lib/calculations";
 
 export function CatalogoAdminClient({ 
@@ -42,6 +42,12 @@ export function CatalogoAdminClient({
     
     startTransition(async () => {
       await subirImagenCatalogo(fd);
+    });
+  };
+
+  const handleUpdateItemMargen = (modelo: string, margen: number | null) => {
+    startTransition(async () => {
+      await actualizarMargenModelo(modelo, margen);
     });
   };
 
@@ -123,12 +129,15 @@ export function CatalogoAdminClient({
                 <th className="px-6 py-3 font-semibold">Modelo</th>
                 <th className="px-6 py-3 font-semibold text-center">Stock</th>
                 <th className="px-6 py-3 font-semibold text-right">Costo Promedio</th>
-                <th className="px-6 py-3 font-semibold text-right">Precio Público (+{margenLocal}%)</th>
+                <th className="px-6 py-3 font-semibold text-center">Margen (%)</th>
+                <th className="px-6 py-3 font-semibold text-right">Precio Público</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50">
               {filtered.map(item => {
-                const precioPublico = item.costo_real_unitario_promedio * (1 + margenLocal / 100);
+                const margenAplicado = item.margen_publico ?? margenLocal;
+                const precioPublico = item.costo_real_unitario_promedio * (1 + margenAplicado / 100);
+                const isCustomMargin = item.margen_publico !== null && item.margen_publico !== undefined;
                 return (
                   <tr key={item.modelo} className="hover:bg-slate-800/30 transition-colors">
                     <td className="px-6 py-4">
@@ -162,15 +171,38 @@ export function CatalogoAdminClient({
                     <td className="px-6 py-4 text-right tabular-nums text-slate-400">
                       {formatUSD(item.costo_real_unitario_promedio)}
                     </td>
+                    <td className="px-6 py-4 text-center">
+                      <input 
+                        type="number" 
+                        step="0.1"
+                        placeholder="Global"
+                        defaultValue={item.margen_publico ?? ""}
+                        disabled={isPending}
+                        className={`w-20 bg-slate-900 border ${isCustomMargin ? 'border-copper text-copper font-bold' : 'border-slate-700 text-slate-300'} px-2 py-1.5 rounded-md text-sm text-center focus:outline-none focus:border-copper focus:ring-1 focus:ring-copper`}
+                        onBlur={(e) => {
+                          const val = e.target.value;
+                          const num = val === "" ? null : parseFloat(val);
+                          if (num !== (item.margen_publico ?? null)) {
+                            handleUpdateItemMargen(item.modelo, num);
+                          }
+                        }}
+                      />
+                      {isCustomMargin && (
+                         <div className="text-[9px] text-copper mt-1">Específico</div>
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-right tabular-nums text-emerald-400 font-bold">
                       {formatUSD(precioPublico)}
+                      {!isCustomMargin && (
+                        <div className="text-[10px] text-slate-500 font-normal mt-0.5">({margenLocal}% global)</div>
+                      )}
                     </td>
                   </tr>
                 );
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-slate-500">
+                  <td colSpan={6} className="py-8 text-center text-slate-500">
                     No se encontraron modelos.
                   </td>
                 </tr>

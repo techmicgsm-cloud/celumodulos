@@ -289,20 +289,21 @@ export async function obtenerCatalogoAgrupado(): Promise<CatalogoItem[]> {
 
   if (catalogo.length === 0) return [];
 
-  // Obtener imágenes
+  // Obtener imágenes y margen específico
   const modelosUnicos = catalogo.map(c => c.modelo);
-  const { data: imagesData, error: imagesError } = await supabase
+  const { data: extraData, error: extraError } = await supabase
     .from("productos_catalogo")
-    .select("modelo, imagen_url")
+    .select("modelo, imagen_url, margen_publico")
     .in("modelo", modelosUnicos);
 
-  if (!imagesError && imagesData) {
-    for (const img of imagesData) {
-      const item = catalogo.find(c => c.modelo === img.modelo);
+  if (!extraError && extraData) {
+    for (const extra of extraData) {
+      const item = catalogo.find(c => c.modelo === extra.modelo);
       if (item) {
+        item.margen_publico = extra.margen_publico;
         // En supabase storage public, generamos url
-        if (img.imagen_url) {
-          const { data } = supabase.storage.from("catalogo_imagenes").getPublicUrl(img.imagen_url);
+        if (extra.imagen_url) {
+          const { data } = supabase.storage.from("catalogo_imagenes").getPublicUrl(extra.imagen_url);
           item.imagen_url = data.publicUrl;
         }
       }
