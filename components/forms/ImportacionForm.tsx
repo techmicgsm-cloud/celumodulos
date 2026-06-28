@@ -63,6 +63,7 @@ export function ImportacionForm({
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [procesandoIA, setProcesandoIA] = useState(false);
+  const [margenProyectado, setMargenProyectado] = useState<number>(40);
 
   const factor = calcularFactor(gastoPesos, totalUsd);
 
@@ -81,6 +82,9 @@ export function ImportacionForm({
 
   const diferenciaUsd = totalUsd - totalUsdIngresado;
   const hayDiferenciaSignificativa = totalUsd > 0 && Math.abs(diferenciaUsd) > 0.5;
+
+  const gananciaProyectada = capitalTotalArs * (margenProyectado / 100);
+  const recaudacionProyectada = capitalTotalArs + gananciaProyectada;
 
   function actualizarItem(clienteId: string, patch: Partial<ModeloFormInput>) {
     setItems((prev) =>
@@ -324,7 +328,8 @@ export function ImportacionForm({
           Agregar modelo
         </button>
 
-        <div className="mt-6 pt-5 border-t border-white/8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="mt-6 pt-5 border-t border-white/8 grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Col 1: USD Diferencias */}
           <div>
             <p className="text-[11px] text-text-muted mb-1">
               USD ingresado en modelos vs. declarado
@@ -340,10 +345,38 @@ export function ImportacionForm({
               </p>
             )}
           </div>
-          <div className="sm:text-right">
-            <p className="text-[11px] text-text-muted mb-1">Capital total (ARS)</p>
-            <p className="text-xl font-semibold text-copper tabular-nums">
+          
+          {/* Col 2: Calculadora de Ganancia */}
+          <div className="md:border-l border-white/8 md:pl-6">
+            <p className="text-[11px] text-text-muted mb-2">Calculadora de Ganancia Proyectada</p>
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <input 
+                  type="number" 
+                  step="0.1"
+                  min="0"
+                  className="w-20 bg-bg-recessed border border-white/10 rounded-md py-1.5 pl-3 pr-6 text-sm font-medium text-white tabular-nums focus:outline-none focus:border-copper focus:ring-1 focus:ring-copper transition-colors" 
+                  value={margenProyectado || ""}
+                  onChange={(e) => setMargenProyectado(Number(e.target.value))}
+                />
+                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted text-xs">%</span>
+              </div>
+              <span className="text-text-muted text-sm font-medium">=</span>
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-emerald-400 tabular-nums">+{formatARS(gananciaProyectada)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Col 3: Capital y Recaudacion */}
+          <div className="md:text-right md:border-l border-white/8 md:pl-6">
+            <p className="text-[11px] text-text-muted mb-1">Capital total invertido (ARS)</p>
+            <p className="text-lg font-semibold text-text-secondary tabular-nums">
               {formatARS(capitalTotalArs)}
+            </p>
+            <p className="text-[11px] text-text-muted mt-2 mb-0.5">Recaudación bruta esperada</p>
+            <p className="text-xl font-bold text-copper tabular-nums">
+              {formatARS(recaudacionProyectada)}
             </p>
           </div>
         </div>
