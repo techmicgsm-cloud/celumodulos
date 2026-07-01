@@ -76,7 +76,7 @@ export default async function VentasPage() {
                       <td className="px-4 py-3 text-center">
                         <div className="flex items-center justify-center gap-2">
                           <Link href={`/ventas/${venta.id}`}>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-copper" title="Ver detalle">
+                            <Button variant="ghost" size="sm" className="p-0 h-8 w-8 text-slate-400 hover:text-copper" title="Ver detalle">
                               <Eye className="h-4 w-4" />
                             </Button>
                           </Link>
