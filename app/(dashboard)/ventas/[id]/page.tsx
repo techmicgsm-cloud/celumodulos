@@ -5,8 +5,9 @@ import { ArrowLeft, Package, User, Receipt, DollarSign, Calendar } from "lucide-
 import Link from "next/link";
 import { BotonImprimirTicket } from "@/components/ventas/BotonImprimirTicket";
 
-export default async function DetalleVentaPage({ params }: { params: { id: string } }) {
-  const venta = await obtenerVentaPorId(params.id);
+export default async function DetalleVentaPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const venta = await obtenerVentaPorId(resolvedParams.id);
 
   if (!venta) {
     return (
