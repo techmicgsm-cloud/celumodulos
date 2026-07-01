@@ -82,10 +82,10 @@ export default async function DetalleVentaPage({ params }: { params: Promise<{ i
               <span className="text-lg font-bold text-emerald-400">{formatARS(venta.ganancia_neta)}</span>
             </div>
             
-            {venta.total_venta > 0 && (
+            {venta.total_costo > 0 && (
               <div className="mt-4 pt-4 border-t border-slate-800 flex justify-between items-center text-xs text-slate-500">
-                <span>Margen de Ganancia</span>
-                <span>{((venta.ganancia_neta / venta.total_venta) * 100).toFixed(2)}%</span>
+                <span>Rentabilidad sobre Costo</span>
+                <span>{((venta.ganancia_neta / venta.total_costo) * 100).toFixed(2)}%</span>
               </div>
             )}
           </div>
