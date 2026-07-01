@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, ShoppingCart } from "lucide-react";
+import { Plus, ShoppingCart, Eye } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { obtenerVentas } from "@/lib/data";
@@ -74,7 +74,14 @@ export default async function VentasPage() {
                         {formatARS(venta.ganancia_neta)}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <BotonImprimirTicket ventaId={venta.id} />
+                        <div className="flex items-center justify-center gap-2">
+                          <Link href={`/ventas/${venta.id}`}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-copper" title="Ver detalle">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                          <BotonImprimirTicket ventaId={venta.id} />
+                        </div>
                       </td>
                     </tr>
                   ))}
