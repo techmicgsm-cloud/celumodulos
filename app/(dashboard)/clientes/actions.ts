@@ -78,3 +78,80 @@ export async function eliminarCliente(clienteId: string) {
 
   redirect("/clientes");
 }
+
+export async function registrarPagoCliente(clienteId: string, formData: FormData, clienteNombre: string) {
+  const supabase = await createClient();
+  
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "No autenticado" };
+  }
+
+  const monto = Number(formData.get("monto"));
+  const metodo_pago = formData.get("metodo_pago") as string;
+  const notas = formData.get("notas") as string;
+
+  if (!monto || monto <= 0) {
+    return { error: "El monto debe ser mayor a 0." };
+  }
+  if (!metodo_pago) {
+    return { error: "Debes seleccionar un método de pago." };
+  }
+
+  try {
+    // 1. Obtener cliente actual para sumar el saldo
+    const { data: cliente, error: getError } = await supabase
+      .from("clientes")
+      .select("saldo_actual")
+      .eq("id", clienteId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (getError || !cliente) {
+      return { error: "No se pudo obtener la información del cliente." };
+    }
+
+    const nuevoSaldo = Number(cliente.saldo_actual) + monto;
+
+    // 2. Actualizar saldo del cliente
+    const { error: updateError } = await supabase
+      .from("clientes")
+      .update({ saldo_actual: nuevoSaldo })
+      .eq("id", clienteId)
+      .eq("user_id", user.id);
+
+    if (updateError) {
+      return { error: "Error al actualizar el saldo del cliente." };
+    }
+
+    // 3. Registrar movimiento en la cuenta corriente del cliente
+    let conceptoCC = "Pago a cuenta";
+    if (notas) conceptoCC += ` - ${notas}`;
+
+    await supabase.from("movimientos_cc").insert({
+      user_id: user.id,
+      cliente_id: clienteId,
+      monto: monto, // Positivo porque es un pago a favor
+      concepto: conceptoCC,
+    });
+
+    // 4. Registrar ingreso en la caja (movimientos_caja)
+    await supabase.from("movimientos_caja").insert({
+      user_id: user.id,
+      tipo: "ingreso",
+      monto: monto,
+      metodo_pago: metodo_pago,
+      concepto: `Pago de deuda CC - Cliente: ${clienteNombre}`,
+    });
+
+    revalidatePath(`/clientes/${clienteId}`);
+    revalidatePath("/clientes");
+    revalidatePath("/caja");
+    
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error al registrar pago:", error);
+    return { error: "Ocurrió un error inesperado al registrar el pago." };
+  }
+}
+

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { obtenerClientePorId, obtenerMovimientosCC } from "@/lib/data";
 import { DeleteClientButton } from "@/components/ui/DeleteClientButton";
+import { RegistrarPagoModal } from "./RegistrarPagoModal";
 
 export default async function ClienteProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -109,12 +110,20 @@ export default async function ClienteProfilePage({ params }: { params: Promise<{
               <div>
                 <p className="text-sm font-medium text-slate-400 flex items-center gap-2 mb-1">
                   <Wallet className="w-4 h-4 text-copper" />
-                  Saldo a favor actual
+                  {cliente.saldo_actual < 0 ? 'Deuda actual' : 'Saldo a favor actual'}
                 </p>
-                <h2 className={`text-4xl font-bold font-mono tracking-tight ${cliente.saldo_actual > 0 ? 'text-green-400' : 'text-white'}`}>
-                  ${Number(cliente.saldo_actual).toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                <h2 className={`text-4xl font-bold font-mono tracking-tight ${cliente.saldo_actual > 0 ? 'text-green-400' : cliente.saldo_actual < 0 ? 'text-red-400' : 'text-white'}`}>
+                  ${Math.abs(Number(cliente.saldo_actual)).toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                 </h2>
               </div>
+              
+              {cliente.saldo_actual < 0 && (
+                <RegistrarPagoModal 
+                  clienteId={cliente.id} 
+                  clienteNombre={cliente.nombre_local} 
+                  saldoDeuda={Math.abs(Number(cliente.saldo_actual))} 
+                />
+              )}
             </div>
           </Card>
 
